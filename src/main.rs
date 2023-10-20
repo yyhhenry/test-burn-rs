@@ -1,6 +1,6 @@
 use burn::backend::WgpuBackend;
 use burn::tensor::backend::Backend;
-use burn::tensor::{Distribution, Shape, Tensor};
+use burn::tensor::{Distribution, Tensor};
 
 fn run<B: Backend>()
 where
