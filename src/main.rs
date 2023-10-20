@@ -1,14 +1,24 @@
 use burn::backend::WgpuBackend;
-use burn::tensor::Tensor;
+use burn::tensor::backend::Backend;
+use burn::tensor::{Distribution, Shape, Tensor};
 
-// Type alias for the backend to use.
-type Backend = WgpuBackend;
+fn run<B: Backend>()
+where
+    B::FloatElem: From<f32> + Into<f32>,
+{
+    B::seed(4703);
+    let shape = Shape::from([3, 3]);
+    let a = Tensor::<B, 2>::random(shape, Distribution::Uniform((0.0).into(), (1.0).into()));
+    let b = Tensor::<B, 2>::ones_like(&a);
+
+    println!("a: {}", a);
+    println!("b: {}", b);
+    let tensors = (a.clone(), b.clone());
+    println!("a * b: {}", a * b);
+    let (a, b) = tensors;
+    println!("a.matmul(b): {}", a.matmul(b));
+}
 
 fn main() {
-    // Creation of two tensors, the first with explicit values and the second one with ones, with the same shape as the first
-    let tensor_1 = Tensor::<Backend, 2>::from_data([[2., 3.], [4., 5.]]);
-    let tensor_2 = Tensor::<Backend, 2>::ones_like(&tensor_1);
-
-    // Print the element-wise addition (done with the WGPU backend) of the two tensors.
-    println!("{}", tensor_1 + tensor_2);
+    run::<WgpuBackend>();
 }
