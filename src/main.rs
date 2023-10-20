@@ -5,5 +5,5 @@ mod model;
 mod train;
 
 fn main() {
-    train::run::<WgpuAutodiffBackend>();
+    train::train::<WgpuAutodiffBackend>();
 }
