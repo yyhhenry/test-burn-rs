@@ -13,9 +13,7 @@ where
 
     println!("a: {}", a);
     println!("b: {}", b);
-    let tensors = (a.clone(), b.clone());
-    println!("a * b: {}", a * b);
-    let (a, b) = tensors;
+    println!("a * b: {}", a.clone() * b.clone());
     println!("a.matmul(b): {}", a.matmul(b));
 }
 
