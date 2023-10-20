@@ -7,8 +7,7 @@ where
     B::FloatElem: From<f32> + Into<f32>,
 {
     B::seed(4703);
-    let shape = Shape::from([3, 3]);
-    let a = Tensor::<B, 2>::random(shape, Distribution::Uniform((0.0).into(), (1.0).into()));
+    let a = Tensor::<B, 2>::random([3, 3], Distribution::Uniform((0.0).into(), (1.0).into()));
     let b = Tensor::<B, 2>::ones_like(&a);
 
     println!("a: {}", a);
