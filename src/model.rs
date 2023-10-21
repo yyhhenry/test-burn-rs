@@ -39,23 +39,6 @@ impl<B: Backend> ConvBlock<B> {
     }
 }
 
-#[derive(Module, Debug, Clone)]
-pub struct LogSoftmax {}
-
-impl LogSoftmax {
-    fn new() -> Self {
-        Self {}
-    }
-    fn forward<B: Backend>(&self, input: Tensor<B, 2>) -> Tensor<B, 2> {
-        let [_, features] = input.dims();
-        let x = input.exp();
-        let sum = x.clone().sum_dim(1);
-        let sum: Vec<_> = (0..features).map(|_| sum.clone()).collect();
-        let sum = Tensor::cat(sum, 1);
-        x / sum
-    }
-}
-
 #[derive(Module, Debug)]
 pub struct Model<B: Backend> {
     conv1: ConvBlock<B>,
@@ -65,7 +48,6 @@ pub struct Model<B: Backend> {
     fc1: nn::Linear<B>,
     fc2: nn::Linear<B>,
     activation: nn::GELU,
-    log_softmax: LogSoftmax,
 }
 
 impl<B: Backend> Default for Model<B> {
@@ -94,7 +76,6 @@ impl<B: Backend> Model<B> {
 
         let dropout = nn::DropoutConfig::new(0.5).init();
         let activation = nn::GELU::new();
-        let log_softmax = LogSoftmax::new();
 
         Self {
             conv1,
@@ -104,7 +85,6 @@ impl<B: Backend> Model<B> {
             fc2,
             dropout,
             activation,
-            log_softmax,
         }
     }
 
@@ -125,7 +105,7 @@ impl<B: Backend> Model<B> {
 
         let x = self.fc2.forward(x);
 
-        self.log_softmax.forward(x)
+        burn::tensor::activation::log_softmax(x, 1)
     }
 
     pub fn forward_classification(&self, item: MNISTBatch<B>) -> ClassificationOutput<B> {
