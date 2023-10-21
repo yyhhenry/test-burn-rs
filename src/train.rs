@@ -80,8 +80,6 @@ pub fn train<B: ADBackend>(path_config: &PathConfig) {
     let learner = LearnerBuilder::new(path_config.get_artifact_dir())
         .metric_train(AccuracyMetric::new())
         .metric_valid(AccuracyMetric::new())
-        .metric_train(CpuUse::new())
-        .metric_valid(CpuUse::new())
         .metric_train(LossMetric::new())
         .metric_valid(LossMetric::new())
         .num_epochs(config.num_epochs)

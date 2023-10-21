@@ -4,6 +4,7 @@ use burn::{
     module::Module,
     nn::{self, loss::CrossEntropyLoss, BatchNorm, PaddingConfig2d},
     tensor::{
+        activation,
         backend::{ADBackend, Backend},
         Tensor,
     },
@@ -14,7 +15,6 @@ use burn::{
 pub struct ConvBlock<B: Backend> {
     conv: nn::conv::Conv2d<B>,
     norm: BatchNorm<B, 2>,
-    activation: nn::GELU,
 }
 
 impl<B: Backend> ConvBlock<B> {
@@ -23,19 +23,15 @@ impl<B: Backend> ConvBlock<B> {
             .with_padding(PaddingConfig2d::Valid)
             .init();
         let norm = nn::BatchNormConfig::new(channels[1]).init();
-        let activation = nn::GELU::new();
-        Self {
-            conv,
-            norm,
-            activation,
-        }
+
+        Self { conv, norm }
     }
 
     pub fn forward(&self, input: Tensor<B, 4>) -> Tensor<B, 4> {
         let x = self.conv.forward(input);
         let x = self.norm.forward(x);
 
-        self.activation.forward(x)
+        activation::gelu(x)
     }
 }
 
@@ -47,7 +43,6 @@ pub struct Model<B: Backend> {
     dropout: nn::Dropout,
     fc1: nn::Linear<B>,
     fc2: nn::Linear<B>,
-    activation: nn::GELU,
 }
 
 impl<B: Backend> Default for Model<B> {
@@ -75,7 +70,6 @@ impl<B: Backend> Model<B> {
             .init();
 
         let dropout = nn::DropoutConfig::new(0.5).init();
-        let activation = nn::GELU::new();
 
         Self {
             conv1,
@@ -84,7 +78,6 @@ impl<B: Backend> Model<B> {
             fc1,
             fc2,
             dropout,
-            activation,
         }
     }
 
@@ -101,11 +94,11 @@ impl<B: Backend> Model<B> {
 
         let x = self.dropout.forward(x);
         let x = self.fc1.forward(x);
-        let x = self.activation.forward(x);
+        let x = activation::gelu(x);
 
         let x = self.fc2.forward(x);
 
-        burn::tensor::activation::log_softmax(x, 1)
+        activation::softmax(x, 1)
     }
 
     pub fn forward_classification(&self, item: MNISTBatch<B>) -> ClassificationOutput<B> {
