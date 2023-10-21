@@ -7,7 +7,7 @@ use burn::module::Module;
 use burn::optim::decay::WeightDecayConfig;
 use burn::optim::AdamConfig;
 use burn::record::NoStdTrainingRecorder;
-use burn::train::metric::{AccuracyMetric, CpuUse, LossMetric};
+use burn::train::metric::{AccuracyMetric, LossMetric};
 use burn::{
     config::Config,
     data::{dataloader::DataLoaderBuilder, dataset::source::huggingface::MNISTDataset},
