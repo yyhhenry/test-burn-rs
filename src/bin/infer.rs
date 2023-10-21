@@ -1,10 +1,11 @@
+use burn::backend::WgpuBackend;
+use test_burn_rs::{config::PathConfig, model::Model};
+
 use burn::{
     module::Module,
     record::NoStdTrainingRecorder,
     tensor::{backend::Backend, Tensor},
 };
-
-use crate::{config::PathConfig, model::Model};
 
 pub fn infer<B: Backend>(path_config: &PathConfig, data: &[f32; 28 * 28]) -> [f32; 10] {
     let model = Model::<B>::new();
@@ -25,4 +26,18 @@ pub fn infer<B: Backend>(path_config: &PathConfig, data: &[f32; 28 * 28]) -> [f3
             "Failed to convert output tensor to array. \
             This is likely a bug in the inference code.",
         )
+}
+
+fn main() {
+    let path_config = PathConfig::default();
+
+    let output = infer::<WgpuBackend>(&path_config, &[0.0; 28 * 28]);
+    println!("Output: {:?}", output);
+
+    let (number, probability) = output
+        .iter()
+        .enumerate()
+        .max_by(|(_, a), (_, b)| a.partial_cmp(b).unwrap())
+        .unwrap();
+    println!("(number, probability) = ({number}, {probability})");
 }

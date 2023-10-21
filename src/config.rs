@@ -7,6 +7,9 @@ impl PathConfig {
     pub fn new(artifact_dir: String) -> Self {
         Self { artifact_dir }
     }
+    pub fn default() -> Self {
+        Self::new(String::from("./tmp"))
+    }
     pub fn get_artifact_dir(&self) -> &str {
         &self.artifact_dir
     }

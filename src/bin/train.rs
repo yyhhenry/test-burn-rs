@@ -1,6 +1,7 @@
-use crate::config::{MnistTrainingConfig, PathConfig};
-use crate::data::MNISTBatcher;
-use crate::model::Model;
+use burn::backend::WgpuAutodiffBackend;
+use test_burn_rs::config::{MnistTrainingConfig, PathConfig};
+use test_burn_rs::data::MNISTBatcher;
+use test_burn_rs::model::Model;
 
 use burn::data::dataset::Dataset;
 use burn::module::Module;
@@ -89,4 +90,9 @@ pub fn train<B: ADBackend>(path_config: &PathConfig) {
     model_trained
         .save_file(path_config.get_model_path(), &NoStdTrainingRecorder::new())
         .expect("Failed to save trained model");
+}
+
+fn main() {
+    let path_config = PathConfig::default();
+    train::<WgpuAutodiffBackend>(&path_config);
 }
