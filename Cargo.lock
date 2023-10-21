@@ -2071,6 +2071,7 @@ dependencies = [
  "burn",
  "image",
  "log",
+ "rand",
  "serde",
 ]
 

@@ -46,21 +46,36 @@ impl<B: Backend> Batcher<MNISTItem, MNISTBatch<B>> for MNISTBatcher<B> {
     }
 }
 pub struct CroppedDataset<I> {
-    crop_size: usize,
+    size: usize,
     dataset: Box<dyn Dataset<I>>,
+    random_indices: Vec<usize>,
 }
 impl<I> CroppedDataset<I> {
     pub fn new(dataset: Box<dyn Dataset<I>>, crop_size: usize) -> Self {
-        Self { crop_size, dataset }
+        let size = if crop_size > dataset.len() {
+            dataset.len()
+        } else {
+            crop_size
+        };
+        let random_indices = (0..size)
+            .map(|_| rand::random::<usize>() % dataset.len())
+            .collect();
+        Self {
+            size,
+            dataset,
+            random_indices,
+        }
     }
 }
 impl<I> Dataset<I> for CroppedDataset<I> {
     fn len(&self) -> usize {
-        self.crop_size.min(self.dataset.len())
+        self.size
     }
     fn get(&self, index: usize) -> Option<I> {
-        let rate = index as f64 / self.len() as f64;
-        let index = (rate * self.dataset.len() as f64).floor() as usize;
+        if index >= self.len() {
+            return None;
+        }
+        let index = self.random_indices[index];
         self.dataset.get(index)
     }
 }
