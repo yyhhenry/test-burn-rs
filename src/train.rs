@@ -31,9 +31,6 @@ impl<I> Dataset<I> for TinySizeDataset<I> {
     fn get(&self, index: usize) -> Option<I> {
         self.dataset.get(index)
     }
-    fn is_empty(&self) -> bool {
-        self.dataset.is_empty()
-    }
 }
 
 pub fn train<B: ADBackend>(path_config: &PathConfig) {
