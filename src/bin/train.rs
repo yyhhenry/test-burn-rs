@@ -16,18 +16,18 @@ use burn::{
     train::LearnerBuilder,
 };
 
-struct TinySizeDataset<I> {
-    size: usize,
+struct CroppedDataset<I> {
+    crop_size: usize,
     dataset: Box<dyn Dataset<I>>,
 }
-impl<I> TinySizeDataset<I> {
-    pub fn new(dataset: Box<dyn Dataset<I>>, size: usize) -> Self {
-        Self { size, dataset }
+impl<I> CroppedDataset<I> {
+    pub fn new(dataset: Box<dyn Dataset<I>>, crop_size: usize) -> Self {
+        Self { crop_size, dataset }
     }
 }
-impl<I> Dataset<I> for TinySizeDataset<I> {
+impl<I> Dataset<I> for CroppedDataset<I> {
     fn len(&self) -> usize {
-        self.size.min(self.dataset.len())
+        self.crop_size.min(self.dataset.len())
     }
     fn get(&self, index: usize) -> Option<I> {
         self.dataset.get(index)
@@ -57,9 +57,9 @@ pub fn train<B: ADBackend>(path_config: &PathConfig) {
     let batcher_train = MNISTBatcher::<B>::new();
     let batcher_test = MNISTBatcher::<B::InnerBackend>::new();
 
-    let tiny_size = 50;
-    let dataset_train = TinySizeDataset::new(Box::new(MNISTDataset::train()), tiny_size);
-    let dataset_valid = TinySizeDataset::new(Box::new(MNISTDataset::test()), tiny_size);
+    let crop_size = usize::MAX;
+    let dataset_train = CroppedDataset::new(Box::new(MNISTDataset::train()), crop_size);
+    let dataset_valid = CroppedDataset::new(Box::new(MNISTDataset::test()), crop_size);
 
     let dataloader_train = DataLoaderBuilder::new(batcher_train)
         .batch_size(config.batch_size)
