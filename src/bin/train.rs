@@ -38,7 +38,7 @@ pub fn train<B: ADBackend>(path_config: &PathConfig) {
     let batcher_train = MNISTBatcher::<B>::new();
     let batcher_test = MNISTBatcher::<B::InnerBackend>::new();
 
-    let crop_size = config.batch_size * 10;
+    let crop_size = config.batch_size * 40;
     let dataset_train = CroppedDataset::new(Box::new(MNISTDataset::train()), crop_size);
     let dataset_valid = CroppedDataset::new(Box::new(MNISTDataset::test()), crop_size);
 

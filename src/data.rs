@@ -5,6 +5,7 @@ use burn::{
     },
     tensor::{backend::Backend, Int, Tensor},
 };
+use rand::seq::SliceRandom;
 
 pub struct MNISTBatcher<B: Backend> {
     _backend: std::marker::PhantomData<B>,
@@ -57,9 +58,11 @@ impl<I> CroppedDataset<I> {
         } else {
             crop_size
         };
-        let random_indices = (0..size)
-            .map(|_| rand::random::<usize>() % dataset.len())
-            .collect();
+        let random_indices = {
+            let mut indices = (0..dataset.len()).collect::<Vec<_>>();
+            indices.shuffle(&mut rand::thread_rng());
+            indices[..size].to_vec()
+        };
         Self {
             size,
             dataset,
