@@ -1,9 +1,8 @@
 use burn::backend::WgpuAutodiffBackend;
 use test_burn_rs::config::{MnistTrainingConfig, PathConfig};
-use test_burn_rs::data::MNISTBatcher;
+use test_burn_rs::data::{CroppedDataset, MNISTBatcher};
 use test_burn_rs::model::Model;
 
-use burn::data::dataset::Dataset;
 use burn::module::Module;
 use burn::optim::decay::WeightDecayConfig;
 use burn::optim::AdamConfig;
@@ -15,24 +14,6 @@ use burn::{
     tensor::backend::ADBackend,
     train::LearnerBuilder,
 };
-
-struct CroppedDataset<I> {
-    crop_size: usize,
-    dataset: Box<dyn Dataset<I>>,
-}
-impl<I> CroppedDataset<I> {
-    pub fn new(dataset: Box<dyn Dataset<I>>, crop_size: usize) -> Self {
-        Self { crop_size, dataset }
-    }
-}
-impl<I> Dataset<I> for CroppedDataset<I> {
-    fn len(&self) -> usize {
-        self.crop_size.min(self.dataset.len())
-    }
-    fn get(&self, index: usize) -> Option<I> {
-        self.dataset.get(index)
-    }
-}
 
 pub fn train<B: ADBackend>(path_config: &PathConfig) {
     // Config
@@ -57,7 +38,7 @@ pub fn train<B: ADBackend>(path_config: &PathConfig) {
     let batcher_train = MNISTBatcher::<B>::new();
     let batcher_test = MNISTBatcher::<B::InnerBackend>::new();
 
-    let crop_size = usize::MAX;
+    let crop_size = config.batch_size * 10;
     let dataset_train = CroppedDataset::new(Box::new(MNISTDataset::train()), crop_size);
     let dataset_valid = CroppedDataset::new(Box::new(MNISTDataset::test()), crop_size);
 
@@ -80,6 +61,7 @@ pub fn train<B: ADBackend>(path_config: &PathConfig) {
         .metric_valid(AccuracyMetric::new())
         .metric_train(LossMetric::new())
         .metric_valid(LossMetric::new())
+        // .with_file_checkpointer(2, CompactRecorder::new())
         .num_epochs(config.num_epochs)
         .build(Model::new(), config.optimizer.init(), 1e-4);
 

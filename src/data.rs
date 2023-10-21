@@ -1,5 +1,8 @@
 use burn::{
-    data::{dataloader::batcher::Batcher, dataset::source::huggingface::MNISTItem},
+    data::{
+        dataloader::batcher::Batcher,
+        dataset::{source::huggingface::MNISTItem, Dataset},
+    },
     tensor::{backend::Backend, Int, Tensor},
 };
 
@@ -40,5 +43,24 @@ impl<B: Backend> Batcher<MNISTItem, MNISTBatch<B>> for MNISTBatcher<B> {
         let targets = Tensor::cat(targets, 0);
 
         MNISTBatch { images, targets }
+    }
+}
+pub struct CroppedDataset<I> {
+    crop_size: usize,
+    dataset: Box<dyn Dataset<I>>,
+}
+impl<I> CroppedDataset<I> {
+    pub fn new(dataset: Box<dyn Dataset<I>>, crop_size: usize) -> Self {
+        Self { crop_size, dataset }
+    }
+}
+impl<I> Dataset<I> for CroppedDataset<I> {
+    fn len(&self) -> usize {
+        self.crop_size.min(self.dataset.len())
+    }
+    fn get(&self, index: usize) -> Option<I> {
+        let rate = index as f64 / self.len() as f64;
+        let index = (rate * self.dataset.len() as f64).floor() as usize;
+        self.dataset.get(index)
     }
 }

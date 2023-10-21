@@ -6,6 +6,6 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-burn = {version = "0.9.0", features = ["wgpu", "dataset-sqlite-bundled", "train", "train-metrics"]}
+burn = {version = "0.9.0", features = ["wgpu", "dataset-sqlite-bundled", "train", "train-ui"]}
 log = "0.4.20"
 serde = {version = "1.0.189", features = ["std", "derive"]}
