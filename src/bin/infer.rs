@@ -71,10 +71,21 @@ struct Args {
 }
 fn get_args() -> Args {
     let mut args = pico_args::Arguments::from_env();
+    if args.contains("--help") {
+        println!("Usage: infer [OPTIONS] <image_path>");
+        println!();
+        println!("Arguments:");
+        println!("    image_path    Path to an image or the directory of images");
+        println!();
+        println!("Options:");
+        println!("    --detailed    Print detailed output");
+        println!("    --help        Print this help message");
+        std::process::exit(0);
+    }
+    let detailed = args.contains("--detailed");
     let image_path = args
         .free_from_str()
-        .expect("Failed to get image path from arguments");
-    let detailed = args.contains("--detailed");
+        .expect("Failed to get image path from arguments, Try --help");
     Args {
         image_path,
         detailed,

@@ -5,7 +5,7 @@ use burn::{
     },
     tensor::{backend::Backend, Int, Tensor},
 };
-use rand::seq::SliceRandom;
+use rand::{seq::SliceRandom, Rng};
 
 pub struct MNISTBatcher<B: Backend> {
     _backend: std::marker::PhantomData<B>,
@@ -46,9 +46,13 @@ impl<B: Backend> Batcher<MNISTItem, MNISTBatch<B>> for MNISTBatcher<B> {
         MNISTBatch { images, targets }
     }
 }
-fn generate_random_indices(subset_size: usize, dataset_size: usize) -> Vec<usize> {
+fn generate_random_indices<R: Rng>(
+    subset_size: usize,
+    dataset_size: usize,
+    rng: &mut R,
+) -> Vec<usize> {
     let mut indices = (0..dataset_size).collect::<Vec<_>>();
-    indices.shuffle(&mut rand::thread_rng());
+    indices.shuffle(rng);
     indices[..subset_size].to_vec()
 }
 pub struct SubDataset<D> {
@@ -60,16 +64,16 @@ pub trait NewSubDataset<D, I>
 where
     D: Dataset<I>,
 {
-    fn new(dataset: D, subset_size: usize) -> Self;
+    fn new<R: Rng>(dataset: D, subset_size: usize, rng: &mut R) -> Self;
 }
 impl<D, I> NewSubDataset<D, I> for SubDataset<D>
 where
     D: Dataset<I>,
 {
-    fn new(dataset: D, subset_size: usize) -> Self {
+    fn new<R: Rng>(dataset: D, subset_size: usize, rng: &mut R) -> Self {
         let dataset_size = dataset.len();
         let subset_size = subset_size.min(dataset_size);
-        let random_indices = generate_random_indices(subset_size, dataset_size);
+        let random_indices = generate_random_indices(subset_size, dataset_size, rng);
         Self {
             subset_size,
             dataset,

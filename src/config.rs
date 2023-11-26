@@ -5,26 +5,6 @@ use burn::{
     optim::{decay::WeightDecayConfig, AdamConfig},
 };
 
-pub struct PathConfig {
-    artifact_dir: std::path::PathBuf,
-}
-impl PathConfig {
-    pub fn new<T: Into<std::path::PathBuf>>(artifact_dir: T) -> Self {
-        Self {
-            artifact_dir: artifact_dir.into(),
-        }
-    }
-    pub fn get_artifact_dir(&self) -> &std::path::PathBuf {
-        &self.artifact_dir
-    }
-    pub fn get_config_path(&self) -> std::path::PathBuf {
-        self.artifact_dir.join("config.json")
-    }
-    pub fn get_model_path(&self) -> std::path::PathBuf {
-        self.artifact_dir.join("model.pt")
-    }
-}
-
 #[derive(Config)]
 pub struct MnistTrainingConfig {
     pub num_epochs: usize,
