@@ -1,3 +1,6 @@
+#[cfg(not(feature = "builtin"))]
+use std::fs;
+
 use burn::{backend::WgpuBackend, record::FullPrecisionSettings};
 use image::imageops;
 use image::imageops::FilterType::Gaussian;
@@ -24,7 +27,10 @@ pub fn infer<B: Backend>(model: &Model<B>, data: &[u8; 28 * 28]) -> [f32; 10] {
 }
 fn build_model<B: Backend>() -> Model<B> {
     // After training, we can load the model and use it to make predictions.
-    let model_bytes = include_bytes!("../../tmp/model.bin");
+    #[cfg(feature = "builtin")]
+    let model_bytes = include_bytes!("../../release/model.bin");
+    #[cfg(not(feature = "builtin"))]
+    let model_bytes = fs::read("model.bin").expect("Failed to read model file");
 
     let record = BinBytesRecorder::<FullPrecisionSettings>::default()
         .load(model_bytes.to_vec())

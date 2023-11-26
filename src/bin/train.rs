@@ -29,9 +29,12 @@ pub fn train<B: ADBackend>(directory: &str) {
     let batcher_test = MNISTBatcher::<B::InnerBackend>::new();
 
     let dataset_train = SubDataset::new(MNISTDataset::train(), config.subset_size, &mut rng);
-    let dataset_valid = SubDataset::new(MNISTDataset::test(), config.subset_size, &mut rng);
-    println!("Train size: {}", dataset_train.len());
-    println!("Valid size: {}", dataset_valid.len());
+    let dataset_valid = SubDataset::new(MNISTDataset::test(), config.subset_size / 4, &mut rng);
+    println!(
+        "Train size: {}, Valid size: {}",
+        dataset_train.len(),
+        dataset_valid.len()
+    );
 
     let dataloader_train = DataLoaderBuilder::new(batcher_train)
         .batch_size(config.batch_size)
@@ -69,5 +72,5 @@ pub fn train<B: ADBackend>(directory: &str) {
 }
 
 fn main() {
-    train::<WgpuAutodiffBackend>("./tmp");
+    train::<WgpuAutodiffBackend>("./model");
 }

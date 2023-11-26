@@ -17,11 +17,11 @@ pub struct MnistTrainingConfig {
 impl Default for MnistTrainingConfig {
     fn default() -> Self {
         Self {
-            num_epochs: 10,
-            batch_size: 64,
+            num_epochs: 5,
+            batch_size: 128,
             num_workers: 4,
             seed: 42,
-            subset_size: usize::MAX,
+            subset_size: 4096,
             optimizer: AdamConfig::new().with_weight_decay(Some(WeightDecayConfig::new(5e-5))),
         }
     }
@@ -33,6 +33,7 @@ impl Debug for MnistTrainingConfig {
             .field("batch_size", &self.batch_size)
             .field("num_workers", &self.num_workers)
             .field("seed", &self.seed)
+            .field("subset_size", &self.subset_size)
             .finish()
     }
 }
