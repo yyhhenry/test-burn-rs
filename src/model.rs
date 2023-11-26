@@ -30,7 +30,6 @@ impl<B: Backend> ConvBlock<B> {
     pub fn forward(&self, input: Tensor<B, 4>) -> Tensor<B, 4> {
         let x = self.conv.forward(input);
         let x = self.norm.forward(x);
-
         activation::gelu(x)
     }
 }
@@ -43,6 +42,7 @@ pub struct Model<B: Backend> {
     dropout: nn::Dropout,
     fc1: nn::Linear<B>,
     fc2: nn::Linear<B>,
+    loss: CrossEntropyLoss<B>,
 }
 
 impl<B: Backend> Default for Model<B> {
@@ -56,13 +56,13 @@ const NUM_CLASSES: usize = 10;
 impl<B: Backend> Model<B> {
     pub fn new() -> Self {
         let conv1 = ConvBlock::new([1, 8], [3, 3]);
-        // out: [Batch,8,26,26]
+        // out_shape: [Batch, 8, 26, 26]
         let conv2 = ConvBlock::new([8, 16], [3, 3]);
-        // out: [Batch,16,24x24]
+        // out_shape: [Batch, 16, 24, 24]
         let conv3 = ConvBlock::new([16, 24], [3, 3]);
-        // out: [Batch,24,22x22]
-        let hidden_size = 24 * 22 * 22;
-        let fc1 = nn::LinearConfig::new(hidden_size, 32)
+        // out_shape: [Batch, 24, 22, 22]
+
+        let fc1 = nn::LinearConfig::new(24 * 22 * 22, 32)
             .with_bias(false)
             .init();
         let fc2 = nn::LinearConfig::new(32, NUM_CLASSES)
@@ -70,6 +70,7 @@ impl<B: Backend> Model<B> {
             .init();
 
         let dropout = nn::DropoutConfig::new(0.5).init();
+        let loss = CrossEntropyLoss::default();
 
         Self {
             conv1,
@@ -78,6 +79,7 @@ impl<B: Backend> Model<B> {
             fc1,
             fc2,
             dropout,
+            loss,
         }
     }
 
@@ -91,21 +93,18 @@ impl<B: Backend> Model<B> {
 
         let [batch_size, channels, height, width] = x.dims();
         let x = x.reshape([batch_size, channels * height * width]);
-
         let x = self.dropout.forward(x);
+
         let x = self.fc1.forward(x);
         let x = activation::gelu(x);
-
         let x = self.fc2.forward(x);
-
         activation::softmax(x, 1)
     }
 
     pub fn forward_classification(&self, item: MNISTBatch<B>) -> ClassificationOutput<B> {
         let targets = item.targets;
         let output = self.forward(item.images);
-        let loss = CrossEntropyLoss::default();
-        let loss = loss.forward(output.clone(), targets.clone());
+        let loss = self.loss.forward(output.clone(), targets.clone());
 
         ClassificationOutput {
             loss,
@@ -117,9 +116,9 @@ impl<B: Backend> Model<B> {
 
 impl<B: ADBackend> TrainStep<MNISTBatch<B>, ClassificationOutput<B>> for Model<B> {
     fn step(&self, item: MNISTBatch<B>) -> TrainOutput<ClassificationOutput<B>> {
-        let item = self.forward_classification(item);
+        let output = self.forward_classification(item);
 
-        TrainOutput::new(self, item.loss.backward(), item)
+        TrainOutput::new(self, output.loss.backward(), output)
     }
 }
 

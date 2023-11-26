@@ -46,39 +46,45 @@ impl<B: Backend> Batcher<MNISTItem, MNISTBatch<B>> for MNISTBatcher<B> {
         MNISTBatch { images, targets }
     }
 }
-pub struct CroppedDataset<I> {
-    size: usize,
-    dataset: Box<dyn Dataset<I>>,
+fn generate_random_indices(subset_size: usize, dataset_size: usize) -> Vec<usize> {
+    let mut indices = (0..dataset_size).collect::<Vec<_>>();
+    indices.shuffle(&mut rand::thread_rng());
+    indices[..subset_size].to_vec()
+}
+pub struct SubDataset<D> {
+    subset_size: usize,
+    dataset: D,
     random_indices: Vec<usize>,
 }
-impl<I> CroppedDataset<I> {
-    pub fn new(dataset: Box<dyn Dataset<I>>, crop_size: usize) -> Self {
-        let size = if crop_size > dataset.len() {
-            dataset.len()
-        } else {
-            crop_size
-        };
-        let random_indices = {
-            let mut indices = (0..dataset.len()).collect::<Vec<_>>();
-            indices.shuffle(&mut rand::thread_rng());
-            indices[..size].to_vec()
-        };
+pub trait NewSubDataset<D, I>
+where
+    D: Dataset<I>,
+{
+    fn new(dataset: D, subset_size: usize) -> Self;
+}
+impl<D, I> NewSubDataset<D, I> for SubDataset<D>
+where
+    D: Dataset<I>,
+{
+    fn new(dataset: D, subset_size: usize) -> Self {
+        let dataset_size = dataset.len();
+        let subset_size = subset_size.min(dataset_size);
+        let random_indices = generate_random_indices(subset_size, dataset_size);
         Self {
-            size,
+            subset_size,
             dataset,
             random_indices,
         }
     }
 }
-impl<I> Dataset<I> for CroppedDataset<I> {
+impl<D, I> Dataset<I> for SubDataset<D>
+where
+    D: Dataset<I>,
+{
     fn len(&self) -> usize {
-        self.size
+        self.subset_size
     }
     fn get(&self, index: usize) -> Option<I> {
-        if index >= self.len() {
-            return None;
-        }
-        let index = self.random_indices[index];
-        self.dataset.get(index)
+        self.dataset.get(*self.random_indices.get(index)?)
     }
 }
