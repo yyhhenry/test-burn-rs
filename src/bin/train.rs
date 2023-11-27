@@ -63,7 +63,7 @@ pub fn train<B: ADBackend>(directory: &str) {
             Aggregate::Mean,
             Direction::Lowest,
             Split::Valid,
-            StoppingCondition::NoImprovementSince { n_epochs: 1 },
+            StoppingCondition::NoImprovementSince { n_epochs: 3 },
         ))
         .build(Model::new(), config.optimizer.init(), 1e-4);
 
