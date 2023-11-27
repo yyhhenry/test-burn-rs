@@ -1,11 +1,13 @@
 use burn::backend::WgpuAutodiffBackend;
 use burn::data::dataset::Dataset;
+use burn::train::metric::store::{Aggregate, Direction, Split};
+use burn::train::{MetricEarlyStoppingStrategy, StoppingCondition};
 use test_burn_rs::config::MnistTrainingConfig;
 use test_burn_rs::data::{MNISTBatcher, NewSubDataset, SubDataset};
 use test_burn_rs::model::Model;
 
 use burn::module::Module;
-use burn::record::NoStdTrainingRecorder;
+use burn::record::{CompactRecorder, NoStdTrainingRecorder};
 use burn::train::metric::{AccuracyMetric, LossMetric};
 use burn::{
     config::Config,
@@ -51,11 +53,18 @@ pub fn train<B: ADBackend>(directory: &str) {
 
     // Model
     let learner = LearnerBuilder::new(directory)
-        .metric_train(AccuracyMetric::new())
-        .metric_valid(AccuracyMetric::new())
-        .metric_train(LossMetric::new())
-        .metric_valid(LossMetric::new())
+        .metric_train_numeric(AccuracyMetric::new())
+        .metric_valid_numeric(AccuracyMetric::new())
+        .metric_train_numeric(LossMetric::new())
+        .metric_valid_numeric(LossMetric::new())
         .num_epochs(config.num_epochs)
+        .with_file_checkpointer(CompactRecorder::new())
+        .early_stopping(MetricEarlyStoppingStrategy::new::<LossMetric<B>>(
+            Aggregate::Mean,
+            Direction::Lowest,
+            Split::Valid,
+            StoppingCondition::NoImprovementSince { n_epochs: 1 },
+        ))
         .build(Model::new(), config.optimizer.init(), 1e-4);
 
     config.save(&config_path).expect("Failed to save config");
