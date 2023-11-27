@@ -17,9 +17,9 @@ pub struct MnistTrainingConfig {
 impl Default for MnistTrainingConfig {
     fn default() -> Self {
         Self {
-            num_epochs: 5,
+            num_epochs: 10,
             batch_size: 128,
-            num_workers: 4,
+            num_workers: 8,
             seed: 42,
             subset_size: 4096,
             optimizer: AdamConfig::new().with_weight_decay(Some(WeightDecayConfig::new(5e-5))),

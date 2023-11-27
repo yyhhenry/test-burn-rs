@@ -28,12 +28,12 @@ pub fn infer<B: Backend>(model: &Model<B>, data: &[u8; 28 * 28]) -> [f32; 10] {
 fn build_model<B: Backend>() -> Model<B> {
     // After training, we can load the model and use it to make predictions.
     #[cfg(feature = "builtin")]
-    let model_bytes = include_bytes!("../../release/model.bin");
+    let model_bytes = include_bytes!("../../model/model.bin").to_vec();
     #[cfg(not(feature = "builtin"))]
-    let model_bytes = fs::read("model.bin").expect("Failed to read model file");
+    let model_bytes = fs::read("model.bin").expect("Failed to read model file at ./model.bin");
 
     let record = BinBytesRecorder::<FullPrecisionSettings>::default()
-        .load(model_bytes.to_vec())
+        .load(model_bytes)
         .expect("Failed to load model");
 
     Model::<B>::new().load_record(record)
