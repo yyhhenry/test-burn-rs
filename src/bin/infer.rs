@@ -20,7 +20,7 @@ pub fn infer<B: Backend>(model: &Model<B>, data: &[u8; 28 * 28]) -> [f32; 10] {
         .collect::<Vec<_>>();
     let input = Tensor::<B, 1>::from_floats(data.as_slice()).reshape([1, 28, 28]);
 
-    let output = model.forward(input).reshape([10]);
+    let output = model.softmax_forward(input).reshape([10]);
     let output = output.into_data().convert::<f32>().value;
 
     output.try_into().unwrap()

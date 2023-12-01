@@ -97,8 +97,11 @@ impl<B: Backend> Model<B> {
 
         let x = self.fc1.forward(x);
         let x = activation::gelu(x);
-        let x = self.fc2.forward(x);
-        activation::softmax(x, 1)
+        self.fc2.forward(x)
+    }
+
+    pub fn softmax_forward(&self, input: Tensor<B, 3>) -> Tensor<B, 2> {
+        activation::softmax(self.forward(input), 1)
     }
 
     pub fn forward_classification(&self, item: MNISTBatch<B>) -> ClassificationOutput<B> {
