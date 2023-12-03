@@ -5,7 +5,7 @@ use burn::{
     nn::{self, loss::CrossEntropyLoss, BatchNorm, PaddingConfig2d},
     tensor::{
         activation,
-        backend::{ADBackend, Backend},
+        backend::{AutodiffBackend, Backend},
         Tensor,
     },
     train::{ClassificationOutput, TrainOutput, TrainStep, ValidStep},
@@ -117,7 +117,7 @@ impl<B: Backend> Model<B> {
     }
 }
 
-impl<B: ADBackend> TrainStep<MNISTBatch<B>, ClassificationOutput<B>> for Model<B> {
+impl<B: AutodiffBackend> TrainStep<MNISTBatch<B>, ClassificationOutput<B>> for Model<B> {
     fn step(&self, item: MNISTBatch<B>) -> TrainOutput<ClassificationOutput<B>> {
         let output = self.forward_classification(item);
 

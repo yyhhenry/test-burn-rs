@@ -1,7 +1,7 @@
 #[cfg(not(feature = "builtin"))]
 use std::fs;
 
-use burn::{backend::WgpuBackend, record::FullPrecisionSettings};
+use burn::{backend::Wgpu, record::FullPrecisionSettings};
 use image::imageops;
 use image::imageops::FilterType::Gaussian;
 use test_burn_rs::model::Model;
@@ -100,7 +100,7 @@ fn get_args() -> Args {
 
 fn main() {
     let args = get_args();
-    let model = build_model::<WgpuBackend>();
+    let model = build_model::<Wgpu>();
 
     let accept_extensions = ["png", "jpg", "jpeg"];
 

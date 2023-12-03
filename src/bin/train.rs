@@ -1,4 +1,4 @@
-use burn::backend::WgpuAutodiffBackend;
+use burn::backend::{Autodiff, Wgpu};
 use burn::data::dataset::Dataset;
 use burn::train::metric::store::{Aggregate, Direction, Split};
 use burn::train::{MetricEarlyStoppingStrategy, StoppingCondition};
@@ -12,12 +12,12 @@ use burn::train::metric::{AccuracyMetric, LossMetric};
 use burn::{
     config::Config,
     data::{dataloader::DataLoaderBuilder, dataset::source::huggingface::MNISTDataset},
-    tensor::backend::ADBackend,
+    tensor::backend::AutodiffBackend,
     train::LearnerBuilder,
 };
 use rand::SeedableRng;
 
-pub fn train<B: ADBackend>(directory: &str) {
+pub fn train<B: AutodiffBackend>(directory: &str) {
     let directory_path = std::path::Path::new(directory);
     let config_path = directory_path.join("config.json");
     let config = MnistTrainingConfig::load(&config_path).unwrap_or(MnistTrainingConfig::default());
@@ -81,5 +81,5 @@ pub fn train<B: ADBackend>(directory: &str) {
 }
 
 fn main() {
-    train::<WgpuAutodiffBackend>("./model");
+    train::<Autodiff<Wgpu>>("./model");
 }
